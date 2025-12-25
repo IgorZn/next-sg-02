@@ -28,3 +28,30 @@ export async function createSnippet(values: ValuesType) {
         return {success: false, message: 'Failed to create snippet', redirectTo: ''};
     }
 }
+
+export async function getSnippets() {
+    try {
+        return await prisma.snippet.findMany({
+            orderBy: {
+                createdAt: 'desc'
+            }
+        })
+    } catch (error) {
+        console.error('Error fetching snippets:', error)
+        return []
+    }
+
+}
+
+export async function getSnippetByID(id: string) {
+    try {
+        return await prisma.snippet.findUnique({
+            where: {
+                id
+            }
+        })
+    } catch (error) {
+        console.error('Error fetching snippet by ID:', error)
+        return null
+    }
+}

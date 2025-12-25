@@ -8,10 +8,14 @@ import {z} from "zod"
 import {Button} from "@/components/ui/button"
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
 import {Input} from "@/components/ui/input"
-import { useRouter } from 'next/navigation';
+import {useRouter} from 'next/navigation';
 
 interface SnippetFormProps {
-    createSnippet: (values: { title: string; code: string }) => Promise<{ success: boolean; message: string, redirectTo: string }>;
+    createSnippet: (values: { title: string; code: string }) => Promise<{
+        success: boolean;
+        message: string,
+        redirectTo: string
+    }>;
 }
 
 const formSchema = z.object({
@@ -50,7 +54,7 @@ function SnippetForm({createSnippet}: SnippetFormProps) {
     return (
         <>
             <Form {...form} >
-                <form onSubmit={form.handleSubmit(onSubmit)}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className={'flex flex-col gap-2'}>
                     <div className={'space-y-2'}>
                         <FormField
                             control={form.control}
@@ -79,7 +83,7 @@ function SnippetForm({createSnippet}: SnippetFormProps) {
                             )}
                         />
                     </div>
-                    <Button type="submit" disabled={isPending}>Save</Button>
+                    <Button type="submit" disabled={isPending} className={'w-full'}>Save</Button>
                 </form>
             </Form>
         </>
