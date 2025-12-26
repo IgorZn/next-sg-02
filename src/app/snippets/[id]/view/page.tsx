@@ -5,7 +5,6 @@ import SnippetCard from "@/components/snippet-card";
 async function ViewSnippet(props: { params: { id: string }}) {
     const {id} = await props.params
     const snippet = await getSnippetByID(id)
-    console.log(id)
     return (
         <div>
             <h1>View Snippet</h1>

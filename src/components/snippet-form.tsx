@@ -1,5 +1,5 @@
 'use client'
-import React, {useState, useTransition} from 'react';
+import React, {useEffect, useState, useTransition} from 'react';
 
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useForm} from "react-hook-form"
@@ -9,13 +9,18 @@ import {Button} from "@/components/ui/button"
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
 import {Input} from "@/components/ui/input"
 import {useRouter} from 'next/navigation';
+import {Snippet} from "../../generated/prisma/client";
+import {updateSnippet} from "@actions/snippet";
 
 interface SnippetFormProps {
     createSnippet: (values: { title: string; code: string }) => Promise<{
         success: boolean;
         message: string,
-        redirectTo: string
+        redirectTo: string,
+        data?: Snippet
     }>;
+    snippet?: Snippet | null;
+    isEditMode?: boolean;
 }
 
 const formSchema = z.object({
@@ -27,7 +32,7 @@ const formSchema = z.object({
     }),
 })
 
-function SnippetForm({createSnippet}: SnippetFormProps) {
+function SnippetForm({createSnippet, snippet = null, isEditMode = false}: SnippetFormProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [result, setResult] = useState<{ success: boolean; message: string; redirectTo: string } | null>(null);
@@ -39,16 +44,45 @@ function SnippetForm({createSnippet}: SnippetFormProps) {
         },
     })
 
+    useEffect(() => {
+        if (snippet) {
+            form.reset({
+                title: snippet.title,
+                code: snippet.code,
+            });
+        }
+    }, [snippet, form]);
+
     function onSubmit(values: z.infer<typeof formSchema>) {
         startTransition(async () => {
-            const result = await createSnippet(values);
-            setResult(result);
-            if (result.success) {
+            // Обрабатываем создание
+            if (!isEditMode) {
+                const result = await createSnippet(values);
+                if (result) {
+                    setResult(result);
+                    form.reset();
+                    router.push(result.redirectTo)
+                }
+                return;
+            }
+
+            // Обрабатываем редактирование
+            if (!snippet) {
+                setResult({
+                    success: false,
+                    message: "Cannot edit: snippet not found",
+                    redirectTo: "/snippets"
+                });
+                return;
+            }
+
+            const result = await updateSnippet(snippet.id, values);
+            if (result) {
+                setResult(result);
                 form.reset();
                 router.push(result.redirectTo)
             }
         })
-
     }
 
     return (

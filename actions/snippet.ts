@@ -21,7 +21,7 @@ export async function createSnippet(values: ValuesType) {
         return {
             success: true,
             message: 'Snippet created successfully',
-            redirectTo: '/'
+            redirectTo: '/snippets'
         };
     } catch (error) {
         console.error('Error creating snippet:', error);
@@ -54,4 +54,29 @@ export async function getSnippetByID(id: string) {
         console.error('Error fetching snippet by ID:', error)
         return null
     }
+}
+
+export async function updateSnippet(id: string, values: ValuesType) {
+    try {
+        const result = await prisma.snippet.update({
+            where: {
+                id
+            },
+            data: {
+                ...values
+            }
+        })
+        return {
+            success: true,
+            message: 'Snippet created successfully',
+            redirectTo: '/snippets',
+            data: result
+        };
+
+
+    } catch (error) {
+        console.error('Error updating snippet:', error)
+        return null
+    }
+
 }

@@ -7,20 +7,50 @@ import {
     CardTitle,
 } from "@/components/ui/card"
 
-import React from 'react';
+import React, {startTransition} from 'react';
 import Link from "next/link";
 import {Button} from "@/components/ui/button";
 import {Snippet} from "../../generated/prisma/client";
-import { notFound } from "next/navigation";
+import {notFound} from "next/navigation";
+import {usePathname} from 'next/navigation';
+import {updateSnippet} from "@actions/snippet";
 
 interface SnippetCardProps {
     snippet: Snippet | null;
 }
 
 function SnippetCard({snippet}: SnippetCardProps) {
+    const pathname = usePathname();
+    let basePath = 'snippets'
+
     if (snippet === null) {
         return notFound()
     }
+
+    const onEdit = () => {
+        try {
+            startTransition(async () => {
+                await updateSnippet(snippet.id, {
+                    title: snippet.title,
+                    code: snippet.code
+                })
+            })
+
+        } catch (error) {
+            console.error('Error updating snippet:', error)
+        }
+    }
+
+    // Определяем базовый путь динамически
+    const isViewSection = pathname?.includes('/view')
+    const isEditSection = pathname?.includes('/edit')
+
+
+    isViewSection
+        ? basePath = 'snippets'
+        : isEditSection
+            ? basePath = 'snippets'
+            : (isViewSection || isEditSection) ? '' : basePath = 'snippets'
 
     return (
         <Card className="w-full max-w-sm" key={snippet.id}>
@@ -41,16 +71,25 @@ function SnippetCard({snippet}: SnippetCardProps) {
                 </div>
             </CardContent>
             <CardFooter className={'flex flex-row gap-2'}>
-                <Link href={`snippets/${snippet.id}`}>
-                    <Button variant={'outline'} className={'bg-blue-500/50'}>
-                        View
-                    </Button>
-                </Link>
-                <Link href={`snippets/${snippet.id}/edit`}>
+                {!isViewSection && (
+                    <Link href={`/${basePath}/${snippet.id}/view`}>
+                        <Button variant={'outline'} className={'bg-blue-500/50'}>
+                            View
+                        </Button>
+                    </Link>
+                )}
+                {isEditSection ? (
                     <Button variant={'outline'} className={'bg-green-500/50'}>
-                        Edit
+                        Update
                     </Button>
-                </Link>
+                ) : (
+                    <Link href={`/${basePath}/${snippet.id}/edit`}>
+                        <Button variant={'outline'} className={'bg-green-500/50'}>
+                            Edit
+                        </Button>
+                    </Link>
+                )}
+
                 <Button variant={'destructive'}>Delete</Button>
             </CardFooter>
         </Card>
